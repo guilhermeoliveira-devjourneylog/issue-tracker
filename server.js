@@ -5,6 +5,7 @@ const bodyParser  = require('body-parser');
 const expect      = require('chai').expect;
 const cors        = require('cors');
 require('dotenv').config();
+const port = process.env.PORT || 3000; // adicione esta linha
 
 const apiRoutes         = require('./routes/api.js');
 const fccTestingRoutes  = require('./routes/fcctesting.js');
@@ -47,18 +48,19 @@ app.use(function(req, res, next) {
 });
 
 //Start our server and tests!
-const listener = app.listen(process.env.PORT || 3000, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
+app.listen(port, function () {
+  console.log("Listening on http://localhost:" + port);
   if(process.env.NODE_ENV==='test') {
     console.log('Running Tests...');
     setTimeout(function () {
       try {
         runner.run();
       } catch(e) {
+        var error = e;
         console.log('Tests are not valid:');
-        console.error(e);
+        console.log(error);
       }
-    }, 3500);
+    }, 1500);
   }
 });
 

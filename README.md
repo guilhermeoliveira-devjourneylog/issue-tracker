@@ -13,7 +13,7 @@ Project Issue Tracker
 #### Clone the Project Repository
 First, you will need to clone the project repository to your local machine. You can do this by using Git in the terminal or command prompt:
 
-```git clone ```
+```git clone https://github.com/guilhermeoliveira-devjourneylog/issue-tracker```
 
 #### Open the Project in Visual Studio Code
 Next, you can open Visual Studio Code and select "Open Folder" from the "File" menu. Navigate to the folder you just cloned and select it.

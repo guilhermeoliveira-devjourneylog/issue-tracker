@@ -1,3 +1,4 @@
+const mySecret = process.env['PW']
 'use strict';
 
 const expect = require('chai').expect;

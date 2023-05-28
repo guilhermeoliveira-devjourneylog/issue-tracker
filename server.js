@@ -1,3 +1,4 @@
+const mySecret = process.env['NODE_ENV']
 'use strict';
 
 const express     = require('express');

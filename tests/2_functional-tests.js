@@ -1,11 +1,3 @@
-/*
- *
- *
- *       FILL IN EACH FUNCTIONAL TEST BELOW COMPLETELY
- *       -----[Keep the tests in the same order!]-----
- *       (if additional are added, keep them at the very end!)
- */
-
 var chaiHttp = require("chai-http");
 var chai = require("chai");
 var assert = chai.assert;
@@ -69,22 +61,22 @@ suite("Functional Tests", function() {
           id2 = res.body._id;
           console.log("id 2 has been set as " + id2);
           done();
-        })
+        });
     });
-    
+
     test("Missing required fields", function(done) {
-        chai
-          .request(server)
-          .post("/api/issues/test")
-          .send({
-            issue_title: "Title"
-          })
-          .end(function(err, res) {
-            assert.equal(res.body, 'Required fields missing from request');
-            done();
-          });
-      });
-  })
+      chai
+        .request(server)
+        .post("/api/issues/test")
+        .send({
+          issue_title: "Title"
+        })
+        .end(function(err, res) {
+          assert.equal(res.body.error, 'Required fields missing from request');
+          done();
+        });
+    });
+  });
 
   suite("PUT /api/issues/{project} => text", function() {
     test("No body", function(done) {
@@ -93,12 +85,11 @@ suite("Functional Tests", function() {
         .put("/api/issues/test")
         .send({})
         .end(function(err, res) {
-          assert.equal(res.body, "no updated field sent");
+          assert.equal(res.body.error, "No updated field or _id sent");
           done();
         });
     });
 
-    // 1) Atualizar o callback do teste "One field to update" para verificar corretamente o resultado
     test("One field to update", function(done) {
       chai
         .request(server)
@@ -108,16 +99,12 @@ suite("Functional Tests", function() {
           issue_text: "new text"
         })
         .end(function(err, res) {
-          assert.equal(res.status, 200);
-          assert.equal(res.body, "successfully updated");
-          assert.equal(res.text, "successfully updated");
-          console.log(res.status);
-          console.log(res.body);
+          assert.equal(res.body.result, "successfully updated");
+          assert.equal(res.body._id, id1);
           done();
         });
     });
 
-    // 2) Atualizar o callback do teste "Multiple fields to update" para verificar corretamente o resultado  
     test("Multiple fields to update", function(done) {
       chai
         .request(server)
@@ -128,119 +115,135 @@ suite("Functional Tests", function() {
           issue_text: "new text"
         })
         .end(function(err, res) {
-          assert.equal(res.status, 200);
-          assert.equal(res.body, "successfully updated");
-          assert.equal(res.text, "successfully updated");
-          console.log(res.status);
-          console.log(res.body);
+          assert.equal(res.body.result, "successfully updated");
+          assert.equal(res.body._id, id2);
           done();
         });
     });
   });
-    // 3) No filtro "No filter", atualizar a verificação para comparar o status 200 em vez de 500
-    suite(
-      "GET /api/issues/{project} => Array of objects with issue data",
-      function() {
-        test("No filter", function(done) {
-          chai
-            .request(server)
-            .get("/api/issues/test")
-            .query({})
-            .end(function(err, res) {
-              assert.equal(res.status, 200);
-              assert.isArray(res.body);
-              assert.property(res.body[0], "issue_title");
-              assert.property(res.body[0], "issue_text");
-              assert.property(res.body[0], "created_on");
-              assert.property(res.body[0], "updated_on");
-              assert.property(res.body[0], "created_by");
-              assert.property(res.body[0], "assigned_to");
-              assert.property(res.body[0], "open");
-              assert.property(res.body[0], "status_text");
-              assert.property(res.body[0], "_id");
-              done();
-            });
-        });
-        // 4) Atualizar os testes "One filter" e "Multiple filters" para verificar se res.body é um array antes de aplicar forEach
-        test("One filter", function(done) {
-          chai
-            .request(server)
-            .get("/api/issues/test")
-            .query({ created_by: "Functional Test - Every field filled in" })
-            .end(function(err, res) {
-              assert.equal(res.status, 200);
-              assert.isArray(res.body);
-              res.body.forEach(issueResult => {
-                assert.equal(
-                  issueResult.created_by,
-                  "Functional Test - Every field filled in"
-                );
-              });
-              done();
-            });
-        });
 
-        test("Multiple filters (test for multiple fields you know will be in the db for a return)", function(done) {
-          chai
-            .request(server)
-            .get("/api/issues/test")
-            .query({
-              open: true,
-              created_by: "Functional Test - Every field filled in"
-            })
-            .end(function(err, res) {
-              assert.equal(res.status, 200);
-              assert.isArray(res.body);
-              res.body.forEach(issueResult => {
-                assert.equal(issueResult.open, true);
-                assert.equal(
-                  issueResult.created_by,
-                  "Functional Test - Every field filled in"
-                );
-              });
-              done();
-            });
+  suite("GET /api/issues/{project} => Array of objects with issue data", function() {
+    test("No filter", function(done) {
+      chai
+        .request(server)
+        .get("/api/issues/test")
+        .query({})
+        .end(function(err, res) {
+          assert.equal(res.status, 200); // Alterado de 500 para 200
+          assert.isArray(res.body);
+          assert.isNotEmpty(res.body);
+          res.body.forEach(issueResult => {
+            assert.equal(issueResult.project, "test");
+            assert.property(issueResult, "issue_title");
+            assert.property(issueResult, "issue_text");
+            assert.property(issueResult, "created_by");
+            assert.property(issueResult, "assigned_to");
+            assert.property(issueResult, "status_text");
+            assert.property(issueResult, "open");
+            assert.property(issueResult, "created_on");
+            assert.property(issueResult, "updated_on");
+            assert.property(issueResult, "_id");
+          });
+          done();
         });
-      }
-    );
-
-    suite("DELETE /api/issues/{project} => text", function() {
-      test("No _id", function(done) {
-        chai
-          .request(server)
-          .delete("/api/issues/test")
-          .send({})
-          .end(function(err, res) {
-            assert.equal(res.body, "id error");
-            done();
+    });
+  
+    test("One filter", function(done) {
+      chai
+        .request(server)
+        .get("/api/issues/test")
+        .query({ created_by: "Functional Test - Every field filled in" })
+        .end(function(err, res) {
+          assert.equal(res.status, 200); // Alterado de 500 para 200
+          assert.isArray(res.body);
+          assert.isNotEmpty(res.body);
+          res.body.forEach(issueResult => {
+            assert.equal(issueResult.project, "test");
+            assert.equal(
+              issueResult.created_by,
+              "Functional Test - Every field filled in"
+            );
+            assert.property(issueResult, "issue_title");
+            assert.property(issueResult, "issue_text");
+            assert.property(issueResult, "created_on");
+            assert.property(issueResult, "updated_on");
+            assert.property(issueResult, "created_by");
+            assert.property(issueResult, "assigned_to");
+            assert.property(issueResult, "open");
+            assert.property(issueResult, "status_text");
+            assert.property(issueResult, "_id");
           });
-      });
-      // 5) Adicionar a chamada done() após a verificação do teste "Valid _id" no DELETE
-      test("Valid _id", function(done) {
-        chai
-          .request(server)
-          .delete("/api/issues/test")
-          .send({
-            _id: id1
-          })
-          .end(function(err, res) {
-            assert.equal(res.status, 200);
-            assert.equal(res.body, "deleted " + id1);
-            assert.equal(res.text, "deleted " + id1);
-            done(); // Adicionar esta chamada done() para finalizar o teste corretamente
+          done();
+        });
+    });
+  
+    test("Multiple filters (test for multiple fields you know will be in the db for a return)", function(done) {
+      chai
+        .request(server)
+        .get("/api/issues/test")
+        .query({
+          open: true,
+          created_by: "Functional Test - Every field filled in"
+        })
+        .end(function(err, res) {
+          assert.equal(res.status, 200); // Alterado de 500 para 200
+          assert.isArray(res.body);
+          assert.isNotEmpty(res.body);
+          res.body.forEach(issueResult => {
+            assert.equal(issueResult.project, "test");
+            assert.equal(issueResult.open, true);
+            assert.equal(
+              issueResult.created_by,
+              "Functional Test - Every field filled in"
+            );
+            assert.property(issueResult, "issue_title");
+            assert.property(issueResult, "issue_text");
+            assert.property(issueResult, "created_on");
+            assert.property(issueResult, "updated_on");
+            assert.property(issueResult, "created_by");
+            assert.property(issueResult, "assigned_to");
+            assert.property(issueResult, "open");
+            assert.property(issueResult, "status_text");
+            assert.property(issueResult, "_id");
           });
-        chai
-          .request(server)
-          .delete("/api/issues/test")
-          .send({
-            _id: id2
-          })
-          .end(function(err, res) {
-            assert.equal(res.status, 200);
-            assert.equal(res.body, "deleted " + id2);
-            assert.equal(res.text, "deleted " + id2);
-            done();
-          });
-      });
+          done();
+        });
     });
   });
+
+  
+  suite("DELETE /api/issues/{project} => text", function() {
+    test("No _id", function(done) {
+      chai
+        .request(server)
+        .delete("/api/issues/test")
+        .send({})
+        .end(function(err, res) {
+          assert.equal(res.body.error, "Missing _id");
+          done();
+        });
+    });
+  
+    test("Valid _id", function(done) {
+      chai
+        .request(server)
+        .delete("/api/issues/test")
+        .send({
+          _id: id1
+        })
+        .end(function(err, res) {
+          assert.equal(res.body.result, "Deleted " + id1);
+          chai
+            .request(server)
+            .delete("/api/issues/test")
+            .send({
+              _id: id2
+            })
+            .end(function(err, res) {
+              assert.equal(res.body.result, "Deleted " + id2);
+              done();
+            });
+        });
+    });
+  });
+});

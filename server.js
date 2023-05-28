@@ -10,6 +10,7 @@ const port = process.env.PORT || 3000; // adicione esta linha
 const apiRoutes         = require('./routes/api.js');
 const fccTestingRoutes  = require('./routes/fcctesting.js');
 const runner            = require('./test-runner');
+let helmet = require('helmet')
 
 let app = express();
 
@@ -18,9 +19,9 @@ app.use('/public', express.static(process.cwd() + '/public'));
 app.use(cors({origin: '*'})); //For FCC testing purposes only
 
 
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(helmet.xssFilter())
 
 //Sample front-end
 app.route('/:project/')

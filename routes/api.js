@@ -25,7 +25,22 @@ module.exports = function (app) {
 
   app.route('/api/issues/:project')
 
+  
   .get(function (req, res) {
+    const project = req.params.project;
+    const filterObject = req.query;
+    filterObject.project = project;
+    Issue.find(filterObject).exec()
+      .then(arrayOfResults => {
+        return res.status(200).json(arrayOfResults);
+      })
+      .catch(error => {
+        console.error(error);
+        return res.status(500).json({ error: 'Error retrieving the issues' });
+      });
+  })
+
+  /* .get(function (req, res) {
     let project = req.params.project;
     let filterObject = { project };
 
@@ -45,7 +60,7 @@ module.exports = function (app) {
         return res.json({ error: 'Error retrieving issues' });
       }
     });
-  })
+  }) */
 
     .post(function (req, res) {
       let project = req.params.project;
